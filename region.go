@@ -16,7 +16,7 @@ type Region struct {
 const url string = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
 
 func GetRegions() (r []Region, err error) {
-    resp, err := http.Get(url)
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -24,9 +24,9 @@ func GetRegions() (r []Region, err error) {
 	defer resp.Body.Close()
 
 	tr, err := charset.NewReader("windows-1251", resp.Body)
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
 	p := h5.NewParser(tr)
 	err = p.Parse()
