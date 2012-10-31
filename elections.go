@@ -12,6 +12,7 @@ func main() {
 	}
 
 	for i, region := range regions {
-        fmt.Printf("%d: %s [%d]\n", i + 1, region.Name, region.Id)
+		fmt.Printf("%d: %s [%d-%d]\n", i+1, region.Name, region.FirstDist, region.FirstDist+region.DistCount-1)
+
 	}
 }

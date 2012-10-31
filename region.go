@@ -8,37 +8,25 @@ import (
 )
 
 type Region struct {
-	Id        int
+	FirstDist int
+	DistCount int
 	Name      string
-	Districts []District
+	Districts map[int]*District
 }
 
-const url = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
+const regions_url = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
 
 func GetRegions() (r []Region, err error) {
-	d, err := goquery.NewDocument(url)
+	d, err := goquery.NewDocument(regions_url)
 	if err != nil {
 		return nil, err
 	}
 
 	d.Find("table.t2").Last().Find("tr").First().Siblings().Each(func(j int, rs *goquery.Selection) {
 		var region Region
-		ars := rs.Children().First().Find("a")
+		ars := rs.Children().First()
 
-		href, ex := ars.Attr("href")
-		if !ex {
-			fmt.Println("No href attr")
-		}
-
-		eqi := strings.LastIndex(href, "=")
-		doti := strings.LastIndex(href, ".")
-
-		region.Id, err = strconv.Atoi(href[eqi+1 : doti])
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		region.Name, err = ars.Html()
+		region.Name, err = ars.Find("a").Html()
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -46,6 +34,21 @@ func GetRegions() (r []Region, err error) {
 		region.Name, err = StringConvert("windows-1251", region.Name)
 		if err != nil {
 			fmt.Println(err)
+		}
+
+		buf, _ := ars.Siblings().Eq(0).Html()
+		region.FirstDist, _ = strconv.Atoi(buf[:strings.Index(buf, " ")])
+
+		buf, _ = ars.Siblings().Eq(1).Html()
+		region.DistCount, _ = strconv.Atoi(buf)
+
+		region.Districts = make(map[int]*District, region.DistCount)
+
+		for i := region.FirstDist; i <= region.DistCount; i++ {
+			region.Districts[i], err = NewDistrict(i)
+			if err != nil {
+				return
+			}
 		}
 
 		r = append(r, region)
