@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
-    "strings"
-    "strconv"
-    "fmt"
+	"strconv"
+	"strings"
 )
 
 type Region struct {
@@ -23,30 +23,30 @@ func GetRegions() (r []Region, err error) {
 
 	d.Find("table.t2").Last().Find("tr").First().Siblings().Each(func(j int, rs *goquery.Selection) {
 		var region Region
-        ars := rs.Children().First().Find("a")
+		ars := rs.Children().First().Find("a")
 
-        href, ex := ars.Attr("href")
-        if !ex {
-            fmt.Println("No href attr")
-        }
+		href, ex := ars.Attr("href")
+		if !ex {
+			fmt.Println("No href attr")
+		}
 
-        eqi := strings.LastIndex(href, "=")
-        doti := strings.LastIndex(href, ".")
+		eqi := strings.LastIndex(href, "=")
+		doti := strings.LastIndex(href, ".")
 
-        region.Id, err = strconv.Atoi(href[eqi + 1:doti])
-        if err != nil {
-            fmt.Println(err)
-        }
+		region.Id, err = strconv.Atoi(href[eqi+1 : doti])
+		if err != nil {
+			fmt.Println(err)
+		}
 
-        region.Name, err = ars.Html()
-        if err != nil {
-            fmt.Println(err)
-        }
+		region.Name, err = ars.Html()
+		if err != nil {
+			fmt.Println(err)
+		}
 
-        region.Name, err = StringConvert("windows-1251", region.Name)
-        if err != nil {
-            fmt.Println(err)
-        }
+		region.Name, err = StringConvert("windows-1251", region.Name)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		r = append(r, region)
 	})
