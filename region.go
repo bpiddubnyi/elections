@@ -1,43 +1,54 @@
 package main
 
 import (
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
-	"code.google.com/p/go-html-transform/h5"
-	"fmt"
-	"net/http"
+	"github.com/PuerkitoBio/goquery"
+    "strings"
+    "strconv"
+    "fmt"
 )
 
 type Region struct {
+	Id        int
 	Name      string
 	Districts []District
 }
 
-const url string = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
+const url = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
 
 func GetRegions() (r []Region, err error) {
-	resp, err := http.Get(url)
+	d, err := goquery.NewDocument(url)
 	if err != nil {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	d.Find("table.t2").Last().Find("tr").First().Siblings().Each(func(j int, rs *goquery.Selection) {
+		var region Region
+        ars := rs.Children().First().Find("a")
 
-	tr, err := charset.NewReader("windows-1251", resp.Body)
-	if err != nil {
-		return nil, err
-	}
+        href, ex := ars.Attr("href")
+        if !ex {
+            fmt.Println("No href attr")
+        }
 
-	p := h5.NewParser(tr)
-	err = p.Parse()
-	if err != nil {
-		return nil, err
-	}
+        eqi := strings.LastIndex(href, "=")
+        doti := strings.LastIndex(href, ".")
 
-	t := p.Tree()
-	t.Walk(func(n *h5.Node) {
-		fmt.Println(n.Data())
+        region.Id, err = strconv.Atoi(href[eqi + 1:doti])
+        if err != nil {
+            fmt.Println(err)
+        }
+
+        region.Name, err = ars.Html()
+        if err != nil {
+            fmt.Println(err)
+        }
+
+        region.Name, err = StringConvert("windows-1251", region.Name)
+        if err != nil {
+            fmt.Println(err)
+        }
+
+		r = append(r, region)
 	})
-
 	return r, nil
 }
