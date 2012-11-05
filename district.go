@@ -98,7 +98,7 @@ func NewDistrict(num int) (dist *District, err error) {
 		var perc float32
 
 		if prec.VotersTotal != 0 {
-			perc = float32(prec.VotersTotal/100)
+			perc = float32(prec.VotersTotal)/100.0
 			perc = float32(prec.VotersVoted)/perc
 		} else {
 			perc = 100.0
