@@ -45,7 +45,6 @@ func GetRegions() (r []Region, err error) {
 
 		region.Districts = make(map[int]*District, region.DistCount)
 
-		fmt.Printf("%s [%d-%d]\n", region.Name, region.FirstDist, region.FirstDist+region.DistCount-1)
 		for i := region.FirstDist; i < region.FirstDist+region.DistCount; i++ {
 			region.Districts[i], _ = NewDistrict(i)
 		}

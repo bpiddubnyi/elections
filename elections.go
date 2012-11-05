@@ -11,9 +11,13 @@ func main() {
 		return
 	}
 
-    fmt.Printf("Regions total: %d\n", len(regions))
-/*	for i, region := range regions {
-		fmt.Printf("%d: %s [%d-%d]\n", i+1, region.Name, region.FirstDist, region.FirstDist+region.DistCount-1)
-
-	}*/
+    for _, region := range regions {
+        fmt.Printf("%s [%d-%d]:\n", region.Name, region.FirstDist, region.FirstDist + region.DistCount -1)
+        for d, dist := range region.Districts {
+            fmt.Printf("  ОВК-%d:\n", d)
+            for _, prec := range dist.Precincts {
+                fmt.Printf("    ВД-%d [%d/%d/%f%%]\n", prec.Number, prec.VotersTotal, prec.VotersVoted, prec.VotedPerc)
+            }
+        }
+    }
 }

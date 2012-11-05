@@ -8,16 +8,12 @@ import (
 	"strings"
 )
 
-type Party struct {
-	Name  string
-	Votes uint
-}
-
 type Precinct struct {
 	Number      int
 	VotersTotal int
 	VotersVoted int
-	Parties     map[string]*Party
+    VotedPerc   float32
+	Parties     map[string]int
 }
 
 type District struct {
@@ -63,7 +59,6 @@ func NewDistrict(num int) (dist *District, err error) {
 	}
 
 	precRows := header.Siblings()
-	fmt.Printf("  ОВО №%d, кількість дільниць: %d\n", num, precRows.Size())
 
 	dist = new(District)
 
@@ -95,18 +90,20 @@ func NewDistrict(num int) (dist *District, err error) {
 			return
 		}
 
-		var perc float32
-
 		if prec.VotersTotal != 0 {
-			perc = float32(prec.VotersTotal)/100.0
-			perc = float32(prec.VotersVoted)/perc
+			prec.VotedPerc = float32(prec.VotersTotal)/100.0
+			prec.VotedPerc = float32(prec.VotersVoted)/prec.VotedPerc
 		} else {
-			perc = 100.0
+			prec.VotedPerc = 100.0
 		}
 
-		fmt.Printf("    Дільниця №%d: Виборців: %d, Явка: %d, Явка(%%): %f%%\n", prec.Number, prec.VotersTotal, prec.VotersVoted, perc)
+        prec.Parties = make(map[string]int, len(parties))
+        s.Children().Slice(3, s.Children().Size()).Each(func(p int, s *goquery.Selection) {
+            buf, _ = s.Html()
+            prec.Parties[parties[p]], err = strconv.Atoi(strings.TrimSpace(buf))
+        })
 
-		dist.Precincts[prec.Number] = prec
+        dist.Precincts[prec.Number] = prec
 	})
 
 	return
