@@ -14,7 +14,8 @@ type Region struct {
 	Districts map[int]*District
 }
 
-const regions_url = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
+//const regions_url = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
+const regions_url = "http://elections/regions.html"
 
 func GetRegions() (r []Region, err error) {
 	d, err := goquery.NewDocument(regions_url)
@@ -44,11 +45,9 @@ func GetRegions() (r []Region, err error) {
 
 		region.Districts = make(map[int]*District, region.DistCount)
 
-		for i := region.FirstDist; i <= region.DistCount; i++ {
-			region.Districts[i], err = NewDistrict(i)
-			if err != nil {
-				return
-			}
+		fmt.Printf("%s [%d-%d]\n", region.Name, region.FirstDist, region.FirstDist+region.DistCount-1)
+		for i := region.FirstDist; i < region.FirstDist+region.DistCount; i++ {
+			region.Districts[i], _ = NewDistrict(i)
 		}
 
 		r = append(r, region)
