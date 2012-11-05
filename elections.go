@@ -17,6 +17,9 @@ func main() {
             fmt.Printf("  ОВК-%d:\n", d)
             for _, prec := range dist.Precincts {
                 fmt.Printf("    ВД-%d [%d/%d/%f%%]\n", prec.Number, prec.VotersTotal, prec.VotersVoted, prec.VotedPerc)
+                for p, party := range prec.Parties {
+                    fmt.Printf("      %s: %d\n", p, party)
+                }
             }
         }
     }
