@@ -5,14 +5,30 @@ import (
 	"code.google.com/p/plotinum/plotter"
 	"flag"
 	"fmt"
+	"os"
+	"path"
+	"strconv"
+)
+
+const (
+	defaultPrecision = 10
+	defaultPrePath = "plots"
 )
 
 func main() {
 	/* Flag parsing*/
-	var verbose, help bool
+	var (
+		verbose, help bool
+		precision int
+		plotPath string
+	)
+
+	defaultPath := path.Join(defaultPrePath, "<precision>")
 
 	flag.BoolVar(&verbose, "verbose", false, "verbose mode")
 	flag.BoolVar(&help, "help", false, "print this help")
+	flag.IntVar(&precision, "precision", defaultPrecision, "calculation precision")
+	flag.StringVar(&plotPath, "path", defaultPath, "path where to save plots")
 
 	flag.Parse()
 
@@ -20,6 +36,25 @@ func main() {
 		fmt.Printf("Usage: ./elections [options]\n")
 		fmt.Printf("Options:\n")
 		flag.PrintDefaults()
+		return
+	}
+
+	if precision < 1 {
+		fmt.Printf("Precision should be greater or equal to one\n")
+		return
+	}
+
+	if (precision != 1) && ((precision % 10) > 0) {
+		fmt.Printf("Precision should be 1 (one) or should be divisible by 10 e.g 10, 100, 1000\n")
+		return
+	}
+
+	if plotPath == defaultPath {
+		plotPath = path.Join(defaultPrePath, strconv.Itoa(precision))
+	}
+
+	if err := os.MkdirAll(plotPath, os.ModePerm); err != nil {
+		fmt.Printf("Failed to create path for plots (%s): %v\n", plotPath, err)
 		return
 	}
 
@@ -47,7 +82,7 @@ func main() {
 						resultMap[party] = &b
 					}
 
-					(*resultMap[party])[Round(result)]++
+					(*resultMap[party])[Round(result, precision)]++
 				}
 			}
 		}
@@ -81,9 +116,12 @@ func main() {
 		p.X.Label.Text = "Голосів за партію на дільниці(%)"
 		p.Y.Label.Text = "Кількість дільниць"
 
-		h := plotter.NewHistogram(xys, 1000)
+		h := plotter.NewHistogram(xys, 100*precision)
 		p.Add(h)
 
-		p.Save(8, 8, party+".png")
+		fname := path.Join(plotPath, party+".png")
+		if err = p.Save(8, 8, fname); err != nil {
+			fmt.Printf("Failed to save plot (%s): %v\n", fname, err)
+		}
 	}
 }
