@@ -12,7 +12,7 @@ type Precinct struct {
 	Number      int
 	VotersTotal int
 	VotersVoted int
-    VotedPerc   float64
+	VotedPerc   float64
 	Parties     map[string]float64
 }
 
@@ -75,7 +75,6 @@ func NewDistrict(num int) (dist *District, err error) {
 			return
 		}
 
-
 		buf, _ = s.Children().Eq(1).Html()
 		prec.VotersTotal, err = strconv.Atoi(strings.TrimSpace(buf))
 		if err != nil {
@@ -91,31 +90,31 @@ func NewDistrict(num int) (dist *District, err error) {
 		}
 
 		if prec.VotersTotal != 0 {
-			prec.VotedPerc = float64(prec.VotersTotal)/100.0
-			prec.VotedPerc = float64(prec.VotersVoted)/prec.VotedPerc
+			prec.VotedPerc = float64(prec.VotersTotal) / 100.0
+			prec.VotedPerc = float64(prec.VotersVoted) / prec.VotedPerc
 		} else {
 			prec.VotedPerc = 100.0
 		}
 
-        prec.Parties = make(map[string]float64, len(parties))
-        s.Children().Slice(3, s.Children().Size()).Each(func(p int, s *goquery.Selection) {
-            var buf string
+		prec.Parties = make(map[string]float64, len(parties))
+		s.Children().Slice(3, s.Children().Size()).Each(func(p int, s *goquery.Selection) {
+			var buf string
 
-			if s.Length() == 1 {
-				buf, _ = s.Html()
+			if f := s.Find("span"); f.Length() > 0 {
+				buf, _ = f.Html()
 			} else {
-				buf, _ = s.Children().Html()
+				buf, _ = s.Html()
 			}
 
 			if prec.VotersVoted != 0 {
 				votes, _ := strconv.Atoi(strings.TrimSpace(buf))
-    	        prec.Parties[parties[p]] = float64(votes)/(float64(prec.VotersVoted)/100.0)
+				prec.Parties[parties[p]] = float64(votes) / (float64(prec.VotersVoted) / 100.0)
 			} else {
-    	        prec.Parties[parties[p]] = 0
+				prec.Parties[parties[p]] = 0
 			}
-        })
+		})
 
-        dist.Precincts[prec.Number] = prec
+		dist.Precincts[prec.Number] = prec
 	})
 
 	return
