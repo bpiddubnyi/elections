@@ -14,8 +14,11 @@ type Region struct {
 	Districts map[int]*District
 }
 
-//const regions_url = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
-const regions_url = "http://elections/regions.html"
+const regions_url = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
+
+/** Url of local cvk.gov.ua copy for testing purpose 
+ *  const region_url = "http://elections/regions.html"
+ **/
 
 func GetRegions() (r []Region, err error) {
 	d, err := goquery.NewDocument(regions_url)

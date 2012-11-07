@@ -17,6 +17,8 @@ func main() {
 	flag.Parse()
 
 	if help {
+		fmt.Printf("Usage: ./elections [options]\n")
+		fmt.Printf("Options:\n")
 		flag.PrintDefaults()
 		return
 	}
@@ -34,15 +36,17 @@ func main() {
 	for _, region := range regions {
 		for _, dist := range region.Districts {
 			for _, prec := range dist.Precincts {
+				/* Omitting few precincts with no voters voted */
+				if prec.VotersVoted == 0 {
+					continue
+				}
+
 				for party, result := range prec.Parties {
 					if partyMap := resultMap[party]; partyMap == nil {
 						b := make(map[float64]float64)
 						resultMap[party] = &b
 					}
 
-					if Round(result) < 0 {
-						fmt.Printf("%s:%d:%d '%s' [%f %f]\n", region.Name, dist.Number, prec.Number, party, result, Round(result))
-					}
 					(*resultMap[party])[Round(result)]++
 				}
 			}
@@ -56,8 +60,9 @@ func main() {
 		}
 	}
 
-	/* Convert maps to XYs */
+	/* Generate plots */
 	for party, partyMap := range resultMap {
+		/* Convert map to XYs */
 		xys := make(plotter.XYs, len(*partyMap))
 		i := 0
 		for x, y := range *partyMap {

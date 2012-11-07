@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+/* I just can't believe that someone still using cp1251.
+ * Burn in hell motherfuckers! */
 func StringConvert(cp string, s string) (res string, err error) {
 	r, err := charset.NewReader(cp, strings.NewReader(s))
 	if err != nil {
