@@ -83,9 +83,17 @@ func main() {
 	}
 
 	resultMap := make(map[string]*map[float64]float64)
+	regionResultMap := make(map[string]*map[string]*map[float64]float64)
 
 	/* Calculations */
 	for _, region := range regions {
+		if regionResultMap[region.Name] == nil {
+			pb := make(map[string]*map[float64]float64)
+			regionResultMap[region.Name] = &pb
+		}
+
+		regionPartyMap := regionResultMap[region.Name]
+
 		for _, dist := range region.Districts {
 			for _, prec := range dist.Precincts {
 				/* Omitting few precincts with no voters voted */
@@ -94,27 +102,31 @@ func main() {
 				}
 
 				for party, result := range prec.Parties {
-					if partyMap := resultMap[party]; partyMap == nil {
+					if (*regionPartyMap)[party] == nil {
+						rb := make(map[float64]float64)
+						(*regionPartyMap)[party] = &rb
+					}
+
+					if resultMap[party] == nil {
 						b := make(map[float64]float64)
 						resultMap[party] = &b
 					}
 
 					(*resultMap[party])[Round(result, precision)]++
+					(*(*regionPartyMap)[party])[Round(result, precision)]++
 				}
 			}
 		}
 	}
 
-	/* Print out calculated data */
-	if verbose {
-		for party, partyMapPtr := range resultMap {
-			fmt.Printf("%s: %v\n", party, *partyMapPtr)
-		}
-	}
-
-	/* Generate plots */
+	/* Generate overall plots */
 	for party, partyMap := range resultMap {
-		/* Convert map to XYs */
+	    /* Print out calculated data */
+        if verbose {
+			fmt.Printf("%s: %v\n", party, *partyMap)
+        }
+
+        /* Convert map to XYs */
 		xys := make(plotter.XYs, len(*partyMap))
 		i := 0
 		for x, y := range *partyMap {
@@ -129,7 +141,7 @@ func main() {
 			fmt.Printf("Failed to create plot: %v\n", err)
 		}
 
-		p.Title.Text = party
+		p.Title.Text = "[Україна] " + party
 		p.X.Label.Text = "Голосів за партію на дільниці(%)"
 		p.Y.Label.Text = "Кількість дільниць"
 
@@ -139,6 +151,54 @@ func main() {
 		fname := path.Join(plotPath, party+".png")
 		if err = p.Save(8, 8, fname); err != nil {
 			fmt.Printf("Failed to save plot (%s): %v\n", fname, err)
+		}
+	}
+
+	/* Generate region plots */
+	for region, regionMap := range regionResultMap {
+	    /* Print out calculated data */
+        if verbose {
+			fmt.Printf("%s:\n", region)
+        }
+
+		for party, partyMap := range *regionMap {
+	        /* Print out calculated data */
+            if verbose {
+                fmt.Printf("%s: %v\n", party, *partyMap)
+            }
+
+			/* Convert map to XYs */
+			xys := make(plotter.XYs, len(*partyMap))
+			i := 0
+			for x, y := range *partyMap {
+				xys[i].X = x
+				xys[i].Y = y
+				i++
+			}
+
+			/* Create plot */
+			p, err := plot.New()
+			if err != nil {
+				fmt.Printf("Failed to create plot: %v\n", err)
+			}
+
+			p.Title.Text = "[" + region + "] " + party
+			p.X.Label.Text = "Голосів за партію на дільниці(%)"
+			p.Y.Label.Text = "Кількість дільниць"
+
+			h := plotter.NewHistogram(xys, 100*precision)
+			p.Add(h)
+
+			regionPlotPath := path.Join(plotPath, region)
+			if err := os.MkdirAll(regionPlotPath, os.ModePerm); err != nil {
+				fmt.Printf("Failed to create path for plots (%s): %v\n", plotPath, err)
+				return
+			}
+
+			fname := path.Join(regionPlotPath, party+".png")
+			if err = p.Save(8, 8, fname); err != nil {
+				fmt.Printf("Failed to save plot (%s): %v\n", fname, err)
+			}
 		}
 	}
 }
