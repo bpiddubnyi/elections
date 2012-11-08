@@ -1,3 +1,6 @@
 elections
 *.log
 *.png
+plots
+*.zip
+*.tar.bz2
