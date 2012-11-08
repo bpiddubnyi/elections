@@ -18,8 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
-	"code.google.com/p/plotinum/plot"
-	"code.google.com/p/plotinum/plotter"
 	"flag"
 	"fmt"
 	"os"
@@ -29,7 +27,7 @@ import (
 
 const (
 	defaultPrecision = 10
-	defaultPrePath   = "plots"
+	defaultPrePath   = "results"
 )
 
 func main() {
@@ -37,7 +35,7 @@ func main() {
 	var (
 		verbose, help bool
 		precision     int
-		plotPath      string
+		savePath      string
 	)
 
 	defaultPath := path.Join(defaultPrePath, "<precision>")
@@ -45,7 +43,7 @@ func main() {
 	flag.BoolVar(&verbose, "verbose", false, "verbose mode")
 	flag.BoolVar(&help, "help", false, "print this help")
 	flag.IntVar(&precision, "precision", defaultPrecision, "calculation precision")
-	flag.StringVar(&plotPath, "path", defaultPath, "path where to save plots")
+	flag.StringVar(&savePath, "path", defaultPath, "path where to save results")
 
 	flag.Parse()
 
@@ -66,13 +64,8 @@ func main() {
 		return
 	}
 
-	if plotPath == defaultPath {
-		plotPath = path.Join(defaultPrePath, strconv.Itoa(precision))
-	}
-
-	if err := os.MkdirAll(plotPath, os.ModePerm); err != nil {
-		fmt.Printf("Failed to create path for plots (%s): %v\n", plotPath, err)
-		return
+	if savePath == defaultPath {
+		savePath = path.Join(defaultPrePath, strconv.Itoa(precision))
 	}
 
 	/* Receiving the info */
@@ -121,84 +114,41 @@ func main() {
 
 	/* Generate overall plots */
 	for party, partyMap := range resultMap {
-	    /* Print out calculated data */
-        if verbose {
+		/* Print out calculated data */
+		if verbose {
 			fmt.Printf("%s: %v\n", party, *partyMap)
-        }
-
-        /* Convert map to XYs */
-		xys := make(plotter.XYs, len(*partyMap))
-		i := 0
-		for x, y := range *partyMap {
-			xys[i].X = x
-			xys[i].Y = y
-			i++
 		}
 
-		/* Create plot */
-		p, err := plot.New()
-		if err != nil {
-			fmt.Printf("Failed to create plot: %v\n", err)
+		if err := os.MkdirAll(savePath, os.ModePerm); err != nil {
+			fmt.Printf("Failed to create dir (%s): %v\n", savePath, err)
+			return
 		}
 
-		p.Title.Text = "[Україна] " + party
-		p.X.Label.Text = "Голосів за партію на дільниці(%)"
-		p.Y.Label.Text = "Кількість дільниць"
-
-		h := plotter.NewHistogram(xys, 100*precision)
-		p.Add(h)
-
-		fname := path.Join(plotPath, party+".png")
-		if err = p.Save(8, 8, fname); err != nil {
-			fmt.Printf("Failed to save plot (%s): %v\n", fname, err)
-		}
+		PartyMapToPlot(partyMap, party, savePath, "[ Україна ]", precision)
+		PartyMapToCsv(partyMap, party, savePath, precision)
 	}
 
 	/* Generate region plots */
 	for region, regionMap := range regionResultMap {
-	    /* Print out calculated data */
-        if verbose {
+		/* Print out calculated data */
+		if verbose {
 			fmt.Printf("%s:\n", region)
-        }
+		}
 
 		for party, partyMap := range *regionMap {
-	        /* Print out calculated data */
-            if verbose {
-                fmt.Printf("%s: %v\n", party, *partyMap)
-            }
-
-			/* Convert map to XYs */
-			xys := make(plotter.XYs, len(*partyMap))
-			i := 0
-			for x, y := range *partyMap {
-				xys[i].X = x
-				xys[i].Y = y
-				i++
+			/* Print out calculated data */
+			if verbose {
+				fmt.Printf("%s: %v\n", party, *partyMap)
 			}
 
-			/* Create plot */
-			p, err := plot.New()
-			if err != nil {
-				fmt.Printf("Failed to create plot: %v\n", err)
-			}
-
-			p.Title.Text = "[" + region + "] " + party
-			p.X.Label.Text = "Голосів за партію на дільниці(%)"
-			p.Y.Label.Text = "Кількість дільниць"
-
-			h := plotter.NewHistogram(xys, 100*precision)
-			p.Add(h)
-
-			regionPlotPath := path.Join(plotPath, region)
-			if err := os.MkdirAll(regionPlotPath, os.ModePerm); err != nil {
-				fmt.Printf("Failed to create path for plots (%s): %v\n", plotPath, err)
+			regionSavePath := path.Join(savePath, region)
+			if err := os.MkdirAll(regionSavePath, os.ModePerm); err != nil {
+				fmt.Printf("Failed to create dir (%s): %v\n", regionSavePath, err)
 				return
 			}
 
-			fname := path.Join(regionPlotPath, party+".png")
-			if err = p.Save(8, 8, fname); err != nil {
-				fmt.Printf("Failed to save plot (%s): %v\n", fname, err)
-			}
+			PartyMapToPlot(partyMap, party, regionSavePath, region, precision)
+			PartyMapToCsv(partyMap, party, regionSavePath, precision)
 		}
 	}
 }

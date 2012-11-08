@@ -1,6 +1,7 @@
 elections
 *.log
 *.png
-plots
+results
 *.zip
 *.tar.bz2
+*.swp
