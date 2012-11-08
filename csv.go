@@ -25,7 +25,10 @@ import (
 )
 
 func PartyMapToCsv(partyMap *map[float64]float64, partyName string, csvPath string, precision int) {
-	buf := make([]string, len(*partyMap))
+	buf := make([][]string, 2)
+	for i := range buf {
+		buf[i] = make([]string, len(*partyMap))
+	}
 
 	var places int
 	if precision == 1 {
@@ -36,7 +39,7 @@ func PartyMapToCsv(partyMap *map[float64]float64, partyName string, csvPath stri
 
 
 	fName := path.Join(csvPath, partyName+".csv")
-	file, err := os.OpenFile(fName, os.O_WRONLY | os.O_CREATE, os.ModePerm)
+	file, err := os.OpenFile(fName, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		fmt.Printf("Failed to open file %s for writing: %v\n", fName, err)
 		panic(err)
@@ -52,19 +55,11 @@ func PartyMapToCsv(partyMap *map[float64]float64, partyName string, csvPath stri
 	csvFile := csv.NewWriter(file)
 
 	i := 0
-	for percent, _ := range *partyMap {
-		buf[i] = fmt.Sprintf("%.*f", places, percent)
+	for percent, count := range *partyMap {
+		buf[0][i] = fmt.Sprintf("%.*f", places, percent)
+		buf[1][i] = fmt.Sprintf("%.0f", count)
 		i++
 	}
 
-	csvFile.Write(buf)
-
-	i = 0
-	for _, result := range *partyMap {
-		buf[i] = fmt.Sprintf("%.0f", result)
-		i++
-	}
-
-	csvFile.Write(buf)
-	csvFile.Flush()
+	csvFile.WriteAll(buf)
 }
