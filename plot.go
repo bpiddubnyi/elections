@@ -21,8 +21,9 @@ import (
 	"code.google.com/p/plotinum/plot"
 	"code.google.com/p/plotinum/plotter"
 	"fmt"
-	"path"
+	"math"
 	"os"
+	"path"
 )
 
 func PartyMapToPlot(m *map[float64]float64, n string, r string, c *Config) {
@@ -53,7 +54,7 @@ func PartyMapToPlot(m *map[float64]float64, n string, r string, c *Config) {
 	p.X.Label.Text = "Голосів за партію на дільниці(%)"
 	p.Y.Label.Text = "Кількість дільниць"
 
-	h := plotter.NewHistogram(xys, 100*c.precision)
+	h := plotter.NewHistogram(xys, int(100*math.Pow(10.0, float64(c.precision))))
 	p.Add(h)
 
 	fname := path.Join(regionDir, n+".png")

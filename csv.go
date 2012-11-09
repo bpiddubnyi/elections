@@ -30,13 +30,6 @@ func PartyMapToCsv(m *map[float64]float64, n string, r string, c *Config) {
 		buf[i] = make([]string, len(*m))
 	}
 
-	var places int
-	if c.precision == 1 {
-		places = 0
-	} else {
-		places = c.precision / 10
-	}
-
 	regionDir := path.Join(c.path, r)
 	if err := os.MkdirAll(regionDir, os.ModePerm); err != nil {
 		fmt.Printf("Failed to create dir (%s): %v\n", regionDir, err)
@@ -61,7 +54,7 @@ func PartyMapToCsv(m *map[float64]float64, n string, r string, c *Config) {
 
 	i := 0
 	for percent, count := range *m {
-		buf[0][i] = fmt.Sprintf("%.*f", places, percent)
+		buf[0][i] = fmt.Sprintf("%.*f", c.precision, percent)
 		buf[1][i] = fmt.Sprintf("%.0f", count)
 		i++
 	}

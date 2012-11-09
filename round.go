@@ -17,9 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
+import "math"
+
 /** Seems like precision of 10 is ok, 
-  * i.e. plots looks reasonable and meaningful */
+ * i.e. plots looks reasonable and meaningful */
 func Round(n float64, precision int) float64 {
-	buf := int(n * float64(precision))
-	return float64(buf) / float64(precision)
+	pbuf := math.Pow(10, float64(precision))
+	buf := int(n * pbuf)
+	return float64(buf) / pbuf
 }

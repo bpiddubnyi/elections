@@ -32,7 +32,7 @@ type Config struct {
 }
 
 const (
-	defaultPrecision = 10
+	defaultPrecision = 1
 	defaultPrePath   = "results"
 )
 
@@ -44,7 +44,7 @@ func main() {
 
 	flag.BoolVar(&config.verbose, "verbose", false, "verbose mode")
 	flag.BoolVar(&config.help, "help", false, "print this help")
-	flag.IntVar(&config.precision, "precision", defaultPrecision, "calculation precision")
+	flag.IntVar(&config.precision, "precision", defaultPrecision, "calculation precision (decimal places)")
 	flag.StringVar(&config.path, "path", defaultPath, "path where to save results")
 
 	flag.Parse()
@@ -56,13 +56,8 @@ func main() {
 		return
 	}
 
-	if config.precision < 1 {
-		fmt.Printf("Precision should be greater or equal to one\n")
-		return
-	}
-
-	if (config.precision != 1) && ((config.precision % 10) > 0) {
-		fmt.Printf("Precision should be 1 (one) or should be divisible by 10 e.g 10, 100, 1000\n")
+	if config.precision < 0 {
+		fmt.Printf("Precision should be greater or equal zero\n")
 		return
 	}
 
