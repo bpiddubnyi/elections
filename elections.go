@@ -20,10 +20,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"path"
 	"strconv"
 )
+
+type Config struct {
+	verbose   bool
+	help      bool
+	precision int
+	path      string
+}
 
 const (
 	defaultPrecision = 10
@@ -32,40 +38,36 @@ const (
 
 func main() {
 	/* Flag parsing*/
-	var (
-		verbose, help bool
-		precision     int
-		savePath      string
-	)
+	var config Config
 
 	defaultPath := path.Join(defaultPrePath, "<precision>")
 
-	flag.BoolVar(&verbose, "verbose", false, "verbose mode")
-	flag.BoolVar(&help, "help", false, "print this help")
-	flag.IntVar(&precision, "precision", defaultPrecision, "calculation precision")
-	flag.StringVar(&savePath, "path", defaultPath, "path where to save results")
+	flag.BoolVar(&config.verbose, "verbose", false, "verbose mode")
+	flag.BoolVar(&config.help, "help", false, "print this help")
+	flag.IntVar(&config.precision, "precision", defaultPrecision, "calculation precision")
+	flag.StringVar(&config.path, "path", defaultPath, "path where to save results")
 
 	flag.Parse()
 
-	if help {
+	if config.help {
 		fmt.Printf("Usage: ./elections [options]\n")
 		fmt.Printf("Options:\n")
 		flag.PrintDefaults()
 		return
 	}
 
-	if precision < 1 {
+	if config.precision < 1 {
 		fmt.Printf("Precision should be greater or equal to one\n")
 		return
 	}
 
-	if (precision != 1) && ((precision % 10) > 0) {
+	if (config.precision != 1) && ((config.precision % 10) > 0) {
 		fmt.Printf("Precision should be 1 (one) or should be divisible by 10 e.g 10, 100, 1000\n")
 		return
 	}
 
-	if savePath == defaultPath {
-		savePath = path.Join(defaultPrePath, strconv.Itoa(precision))
+	if config.path == defaultPath {
+		config.path = path.Join(defaultPrePath, strconv.Itoa(config.precision))
 	}
 
 	/* Receiving the info */
@@ -75,17 +77,15 @@ func main() {
 		return
 	}
 
-	resultMap := make(map[string]*map[float64]float64)
-	regionResultMap := make(map[string]*map[string]*map[float64]float64)
+	resultMap := make(map[string]*map[string]*map[float64]float64)
 
 	/* Calculations */
-	for _, region := range regions {
-		if regionResultMap[region.Name] == nil {
-			pb := make(map[string]*map[float64]float64)
-			regionResultMap[region.Name] = &pb
-		}
+	countryPartyMap := make(map[string]*map[float64]float64)
+	resultMap["Україна"] = &countryPartyMap
 
-		regionPartyMap := regionResultMap[region.Name]
+	for _, region := range regions {
+		regionPartyMap := make(map[string]*map[float64]float64)
+		resultMap[region.Name] = &regionPartyMap
 
 		for _, dist := range region.Districts {
 			for _, prec := range dist.Precincts {
@@ -95,60 +95,35 @@ func main() {
 				}
 
 				for party, result := range prec.Parties {
-					if (*regionPartyMap)[party] == nil {
-						rb := make(map[float64]float64)
-						(*regionPartyMap)[party] = &rb
-					}
+					rpM := regionPartyMap[party]
+					cpM := countryPartyMap[party]
 
-					if resultMap[party] == nil {
+					if rpM == nil {
 						b := make(map[float64]float64)
-						resultMap[party] = &b
+						rpM = &b
+						regionPartyMap[party] = rpM
 					}
 
-					(*resultMap[party])[Round(result, precision)]++
-					(*(*regionPartyMap)[party])[Round(result, precision)]++
+					if cpM == nil {
+						b := make(map[float64]float64)
+						cpM = &b
+						countryPartyMap[party] = cpM
+					}
+
+					resultRound := Round(result, config.precision)
+
+					(*rpM)[resultRound]++
+					(*cpM)[resultRound]++
 				}
 			}
 		}
 	}
 
-	/* Generate overall plots */
-	for party, partyMap := range resultMap {
-		/* Print out calculated data */
-		if verbose {
-			fmt.Printf("%s: %v\n", party, *partyMap)
-		}
-
-		if err := os.MkdirAll(savePath, os.ModePerm); err != nil {
-			fmt.Printf("Failed to create dir (%s): %v\n", savePath, err)
-			return
-		}
-
-		PartyMapToPlot(partyMap, party, savePath, "[ Україна ]", precision)
-		PartyMapToCsv(partyMap, party, savePath, precision)
-	}
-
-	/* Generate region plots */
-	for region, regionMap := range regionResultMap {
-		/* Print out calculated data */
-		if verbose {
-			fmt.Printf("%s:\n", region)
-		}
-
+	/* Save results */
+	for region, regionMap := range resultMap {
 		for party, partyMap := range *regionMap {
-			/* Print out calculated data */
-			if verbose {
-				fmt.Printf("%s: %v\n", party, *partyMap)
-			}
-
-			regionSavePath := path.Join(savePath, region)
-			if err := os.MkdirAll(regionSavePath, os.ModePerm); err != nil {
-				fmt.Printf("Failed to create dir (%s): %v\n", regionSavePath, err)
-				return
-			}
-
-			PartyMapToPlot(partyMap, party, regionSavePath, region, precision)
-			PartyMapToCsv(partyMap, party, regionSavePath, precision)
+			PartyMapToPlot(partyMap, party, region, &config)
+			PartyMapToCsv(partyMap, party, region, &config)
 		}
 	}
 }

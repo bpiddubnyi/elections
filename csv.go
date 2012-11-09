@@ -24,30 +24,35 @@ import (
 	"path"
 )
 
-func PartyMapToCsv(partyMap *map[float64]float64, partyName string, csvPath string, precision int) {
+func PartyMapToCsv(m *map[float64]float64, n string, r string, c *Config) {
 	buf := make([][]string, 2)
 	for i := range buf {
-		buf[i] = make([]string, len(*partyMap))
+		buf[i] = make([]string, len(*m))
 	}
 
 	var places int
-	if precision == 1 {
+	if c.precision == 1 {
 		places = 0
 	} else {
-		places = precision / 10
+		places = c.precision / 10
 	}
 
+	regionDir := path.Join(c.path, r)
+	if err := os.MkdirAll(regionDir, os.ModePerm); err != nil {
+		fmt.Printf("Failed to create dir (%s): %v\n", regionDir, err)
+		panic(err)
+	}
 
-	fName := path.Join(csvPath, partyName+".csv")
-	file, err := os.OpenFile(fName, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, os.ModePerm)
+	fileName := path.Join(regionDir, n+".csv")
+	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if err != nil {
-		fmt.Printf("Failed to open file %s for writing: %v\n", fName, err)
+		fmt.Printf("Failed to open file %s for writing: %v\n", fileName, err)
 		panic(err)
 	}
 
 	defer func() {
 		if err := file.Close(); err != nil {
-			fmt.Printf("Failed to close file %s: %v\n", fName, err)
+			fmt.Printf("Failed to close file %s: %v\n", fileName, err)
 			panic(err)
 		}
 	}()
@@ -55,11 +60,18 @@ func PartyMapToCsv(partyMap *map[float64]float64, partyName string, csvPath stri
 	csvFile := csv.NewWriter(file)
 
 	i := 0
-	for percent, count := range *partyMap {
+	for percent, count := range *m {
 		buf[0][i] = fmt.Sprintf("%.*f", places, percent)
 		buf[1][i] = fmt.Sprintf("%.0f", count)
 		i++
 	}
 
 	csvFile.WriteAll(buf)
+
+	if c.verbose {
+		fmt.Printf("'%s':'%s'\n", r, n)
+		csvOut := csv.NewWriter(os.Stdout)
+		csvOut.WriteAll(buf)
+		fmt.Printf("\n")
+	}
 }

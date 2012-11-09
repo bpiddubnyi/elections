@@ -22,33 +22,43 @@ import (
 	"code.google.com/p/plotinum/plotter"
 	"fmt"
 	"path"
+	"os"
 )
 
-func PartyMapToPlot(partyMap *map[float64]float64, partyName string, plotPath string, title string, precision int) {
+func PartyMapToPlot(m *map[float64]float64, n string, r string, c *Config) {
 	/* Convert map to XYs */
-	xys := make(plotter.XYs, len(*partyMap))
+	xys := make(plotter.XYs, len(*m))
+
 	i := 0
-	for x, y := range *partyMap {
+	for x, y := range *m {
 		xys[i].X = x
 		xys[i].Y = y
 		i++
+	}
+
+	regionDir := path.Join(c.path, r)
+	if err := os.MkdirAll(regionDir, os.ModePerm); err != nil {
+		fmt.Printf("Failed to create dir (%s): %v\n", regionDir, err)
+		panic(err)
 	}
 
 	/* Create plot */
 	p, err := plot.New()
 	if err != nil {
 		fmt.Printf("Failed to create plot: %v\n", err)
+		panic(err)
 	}
 
-	p.Title.Text = title + " " + partyName
+	p.Title.Text = "[" + r + "] " + n
 	p.X.Label.Text = "Голосів за партію на дільниці(%)"
 	p.Y.Label.Text = "Кількість дільниць"
 
-	h := plotter.NewHistogram(xys, 100*precision)
+	h := plotter.NewHistogram(xys, 100*c.precision)
 	p.Add(h)
 
-	fname := path.Join(plotPath, partyName+".png")
+	fname := path.Join(regionDir, n+".png")
 	if err = p.Save(8, 8, fname); err != nil {
 		fmt.Printf("Failed to save plot (%s): %v\n", fname, err)
+		panic(err)
 	}
 }
