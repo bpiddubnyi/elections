@@ -37,7 +37,7 @@ func PartyMapToCsv(m *map[float64]float64, n string, r string, c *Config) {
 	}
 
 	fileName := path.Join(regionDir, n+".csv")
-	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		fmt.Printf("Failed to open file %s for writing: %v\n", fileName, err)
 		panic(err)
