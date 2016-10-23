@@ -28,8 +28,8 @@ import (
 	"github.com/gonum/plot/vg"
 )
 
-func PartyMapToPlot(m *map[float64]float64, n string, r string, c *Config) {
-	/* Convert map to XYs */
+func partyMapToPlot(m *map[float64]float64, n string, r string, c *config) {
+	// Convert map to XYs
 	xys := make(plotter.XYs, len(*m))
 
 	i := 0
@@ -45,7 +45,7 @@ func PartyMapToPlot(m *map[float64]float64, n string, r string, c *Config) {
 		panic(err)
 	}
 
-	/* Create plot */
+	// Create plot
 	p, err := plot.New()
 	if err != nil {
 		fmt.Printf("Failed to create plot: %v\n", err)

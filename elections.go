@@ -24,12 +24,14 @@ import (
 	"strconv"
 )
 
-type Config struct {
+type config struct {
 	verbose   bool
 	help      bool
 	precision int
 	path      string
 }
+
+var cfg config
 
 const (
 	defaultPrecision = 1
@@ -37,44 +39,42 @@ const (
 )
 
 func main() {
-	/* Flag parsing*/
-	var config Config
-
+	// Flag parsing
 	defaultPath := path.Join(defaultPrePath, "<precision>")
 
-	flag.BoolVar(&config.verbose, "verbose", false, "verbose mode")
-	flag.BoolVar(&config.help, "help", false, "print this help")
-	flag.IntVar(&config.precision, "precision", defaultPrecision, "calculation precision (decimal places)")
-	flag.StringVar(&config.path, "path", defaultPath, "path where to save results")
+	flag.BoolVar(&cfg.verbose, "verbose", false, "verbose mode")
+	flag.BoolVar(&cfg.help, "help", false, "print this help")
+	flag.IntVar(&cfg.precision, "precision", defaultPrecision, "calculation precision (decimal places)")
+	flag.StringVar(&cfg.path, "path", defaultPath, "path where to save results")
 
 	flag.Parse()
 
-	if config.help {
+	if cfg.help {
 		fmt.Printf("Usage: ./elections [options]\n")
 		fmt.Printf("Options:\n")
 		flag.PrintDefaults()
 		return
 	}
 
-	if config.precision < 0 {
+	if cfg.precision < 0 {
 		fmt.Printf("Precision should be greater or equal zero\n")
 		return
 	}
 
-	if config.path == defaultPath {
-		config.path = path.Join(defaultPrePath, strconv.Itoa(config.precision))
+	if cfg.path == defaultPath {
+		cfg.path = path.Join(defaultPrePath, strconv.Itoa(cfg.precision))
 	}
 
-	/* Receiving the info */
-	regions, err := GetRegions()
+	// Receiving the info
+	regions, err := parseRegions()
 	if err != nil {
-		fmt.Errorf("Failed to get regions info: %v\n", err)
+		fmt.Printf("Failed to get regions info: %v\n", err)
 		return
 	}
 
 	resultMap := make(map[string]*map[string]*map[float64]float64)
 
-	/* Calculations */
+	// Calculations
 	countryPartyMap := make(map[string]*map[float64]float64)
 	resultMap["Україна"] = &countryPartyMap
 
@@ -84,7 +84,7 @@ func main() {
 
 		for _, dist := range region.Districts {
 			for _, prec := range dist.Precincts {
-				/* Omitting few precincts with no voters voted */
+				// Omitting few precincts with no voters voted
 				if prec.VotersVoted == 0 {
 					continue
 				}
@@ -105,7 +105,7 @@ func main() {
 						countryPartyMap[party] = cpM
 					}
 
-					resultRound := Round(result, config.precision)
+					resultRound := round(result, cfg.precision)
 
 					(*rpM)[resultRound]++
 					(*cpM)[resultRound]++
@@ -114,11 +114,11 @@ func main() {
 		}
 	}
 
-	/* Save results */
+	// Save results
 	for region, regionMap := range resultMap {
 		for party, partyMap := range *regionMap {
-			PartyMapToPlot(partyMap, party, region, &config)
-			PartyMapToCsv(partyMap, party, region, &config)
+			partyMapToPlot(partyMap, party, region, &cfg)
+			partyMapToCsv(partyMap, party, region, &cfg)
 		}
 	}
 }

@@ -24,7 +24,7 @@ import (
 	"path"
 )
 
-func PartyMapToCsv(m *map[float64]float64, n string, r string, c *Config) {
+func partyMapToCsv(m *map[float64]float64, n string, r string, c *config) {
 	buf := make([][]string, 2)
 	for i := range buf {
 		buf[i] = make([]string, len(*m))

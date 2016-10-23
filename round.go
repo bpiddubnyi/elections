@@ -19,9 +19,9 @@ package main
 
 import "math"
 
-/** Seems like precision of 10 is ok, 
- * i.e. plots looks reasonable and meaningful */
-func Round(n float64, precision int) float64 {
+// Seems like precision of 10 is ok,
+// i.e. plots looks reasonable and meaningful
+func round(n float64, precision int) float64 {
 	pbuf := math.Pow(10, float64(precision))
 	buf := int(n * pbuf)
 	return float64(buf) / pbuf

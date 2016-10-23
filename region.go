@@ -25,52 +25,48 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type Region struct {
+type region struct {
 	FirstDist int
 	DistCount int
 	Name      string
-	Districts map[int]*District
+	Districts map[int]*district
 }
 
-const regions_url = "http://www.cvk.gov.ua/pls/vnd2012/wp030?PT001F01=900"
+const regionsURL = "http://www.cvk.gov.ua/pls/vnd2012/wp030?PT001F01=900"
 
-/** Url of local cvk.gov.ua copy for testing purpose
- *  const region_url = "http://elections/regions.html"
- **/
-
-func GetRegions() (r []Region, err error) {
-	d, err := goquery.NewDocument(regions_url)
+func parseRegions() (regions []region, err error) {
+	d, err := goquery.NewDocument(regionsURL)
 	if err != nil {
 		return nil, err
 	}
 
 	d.Find("table.t2").Last().Find("tr").First().Siblings().Each(func(j int, rs *goquery.Selection) {
-		var region Region
+		var reg region
 		ars := rs.Children().First()
 
-		region.Name, err = ars.Find("a").Html()
+		reg.Name, err = ars.Find("a").Html()
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		region.Name, err = winCharsetDecoder.String(region.Name)
+		reg.Name, err = winCharsetDecoder.String(reg.Name)
 		if err != nil {
 			fmt.Println(err)
 		}
 
 		buf, _ := ars.Siblings().Eq(0).Html()
-		region.FirstDist, _ = strconv.Atoi(buf[:strings.Index(buf, "-")])
+		reg.FirstDist, _ = strconv.Atoi(buf[:strings.Index(buf, "-")])
 
 		buf, _ = ars.Siblings().Eq(1).Html()
-		region.DistCount, _ = strconv.Atoi(buf)
+		reg.DistCount, _ = strconv.Atoi(buf)
 
-		region.Districts = make(map[int]*District, region.DistCount)
+		reg.Districts = make(map[int]*district, reg.DistCount)
 
-		for i := region.FirstDist; i < region.FirstDist+region.DistCount; i++ {
-			region.Districts[i], _ = NewDistrict(i)
+		for i := reg.FirstDist; i < reg.FirstDist+reg.DistCount; i++ {
+			reg.Districts[i], _ = newDistrict(i)
 		}
 
-		r = append(r, region)
+		regions = append(regions, reg)
 	})
-	return r, nil
+	return regions, nil
 }

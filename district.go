@@ -26,7 +26,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type Precinct struct {
+type precinct struct {
 	Number      int
 	VotersTotal int
 	VotersVoted int
@@ -34,27 +34,23 @@ type Precinct struct {
 	Parties     map[string]float64
 }
 
-type District struct {
+type district struct {
 	Number    int
-	Precincts map[int]*Precinct
+	Precincts map[int]*precinct
 }
 
-const dist_url = "http://www.cvk.gov.ua/pls/vnd2012/wp336?PT001F01=900&pf7331=%d"
-
-/** Url of local gtk.gov.ua copy for testing purpose
- * const dist_url = "http://elections/dist-%d.html"
- **/
+const districtURLFmt = "http://www.cvk.gov.ua/pls/vnd2012/wp336?PT001F01=900&pf7331=%d"
 
 var parties []string
 
-func NewDistrict(num int) (dist *District, err error) {
-	real_dist_url := fmt.Sprintf(dist_url, num)
-	d, err := goquery.NewDocument(real_dist_url)
+func newDistrict(num int) (dist *district, err error) {
+	distURL := fmt.Sprintf(districtURLFmt, num)
+	d, err := goquery.NewDocument(distURL)
 	if err != nil {
-		/*Yeah, i'm just trying to connect again. That's lame but it fucking works */
-		d, err = goquery.NewDocument(real_dist_url)
+		// Yeah, i'm just trying to connect again. That's lame but it fucking works
+		d, err = goquery.NewDocument(distURL)
 		if err != nil {
-			fmt.Printf("Error: failed to get page '%s' again: %v\n", real_dist_url, err)
+			fmt.Printf("Error: failed to get page '%s' again: %v\n", distURL, err)
 			panic(err)
 		}
 	}
@@ -82,13 +78,13 @@ func NewDistrict(num int) (dist *District, err error) {
 
 	precRows := header.Siblings()
 
-	dist = new(District)
+	dist = new(district)
 
 	dist.Number = num
-	dist.Precincts = make(map[int]*Precinct)
+	dist.Precincts = make(map[int]*precinct)
 
 	precRows.Each(func(k int, s *goquery.Selection) {
-		prec := new(Precinct)
+		prec := new(precinct)
 
 		buf, _ := s.Children().First().Children().First().Html()
 		prec.Number, err = strconv.Atoi(strings.TrimSpace(buf))
@@ -111,8 +107,8 @@ func NewDistrict(num int) (dist *District, err error) {
 			panic(err)
 		}
 
-		/* Currently precinct.VotedPerc is not used in calculations,
-		 *  so even if following assuming is wrong it just doesn't metter */
+		// Currently precinct.VotedPerc is not used in calculations,
+		// so even if following assuming is wrong it just doesn't matter
 		if prec.VotersTotal != 0 {
 			prec.VotedPerc = float64(prec.VotersTotal) / 100.0
 			prec.VotedPerc = float64(prec.VotersVoted) / prec.VotedPerc
