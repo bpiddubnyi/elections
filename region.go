@@ -19,9 +19,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"strconv"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type Region struct {
@@ -31,9 +32,9 @@ type Region struct {
 	Districts map[int]*District
 }
 
-const regions_url = "http://www.cvk.gov.ua/vnd2012/wp030pt001f01=900.html"
+const regions_url = "http://www.cvk.gov.ua/pls/vnd2012/wp030?PT001F01=900"
 
-/** Url of local cvk.gov.ua copy for testing purpose 
+/** Url of local cvk.gov.ua copy for testing purpose
  *  const region_url = "http://elections/regions.html"
  **/
 
@@ -52,13 +53,13 @@ func GetRegions() (r []Region, err error) {
 			fmt.Println(err)
 		}
 
-		region.Name, err = StringConvert("windows-1251", region.Name)
+		region.Name, err = StringConvert(region.Name)
 		if err != nil {
 			fmt.Println(err)
 		}
 
 		buf, _ := ars.Siblings().Eq(0).Html()
-		region.FirstDist, _ = strconv.Atoi(buf[:strings.Index(buf, " ")])
+		region.FirstDist, _ = strconv.Atoi(buf[:strings.Index(buf, "-")])
 
 		buf, _ = ars.Siblings().Eq(1).Html()
 		region.DistCount, _ = strconv.Atoi(buf)

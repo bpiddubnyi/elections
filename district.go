@@ -19,10 +19,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"html"
 	"strconv"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type Precinct struct {
@@ -38,7 +39,7 @@ type District struct {
 	Precincts map[int]*Precinct
 }
 
-const dist_url = "http://www.cvk.gov.ua/vnd2012/wp336pt001f01=900pf7331=%d.html"
+const dist_url = "http://www.cvk.gov.ua/pls/vnd2012/wp336?PT001F01=900&pf7331=%d"
 
 /** Url of local gtk.gov.ua copy for testing purpose
  * const dist_url = "http://elections/dist-%d.html"
@@ -64,14 +65,14 @@ func NewDistrict(num int) (dist *District, err error) {
 		parties = make([]string, header.Children().Size()-3)
 		header.Children().Slice(3, header.Children().Size()).Each(func(i int, s *goquery.Selection) {
 			buf, _ := s.Html()
-			buf, _ = StringConvert("windows-1251", buf)
+			buf, _ = StringConvert(buf)
 			buf = strings.TrimSpace(html.UnescapeString(buf))
 			parties[i] = buf
 		})
 	} else {
 		header.Children().Slice(3, header.Children().Size()).Each(func(j int, s *goquery.Selection) {
 			buf, _ := s.Html()
-			buf, _ = StringConvert("windows-1251", buf)
+			buf, _ = StringConvert(buf)
 			buf = strings.TrimSpace(html.UnescapeString(buf))
 			if buf != parties[j] {
 				fmt.Printf("'%s' not equals '%s'(%d)\n", buf, parties[j], j)
@@ -110,7 +111,7 @@ func NewDistrict(num int) (dist *District, err error) {
 			panic(err)
 		}
 
-		/* Currently precinct.VotedPerc is not used in calculations, 
+		/* Currently precinct.VotedPerc is not used in calculations,
 		 *  so even if following assuming is wrong it just doesn't metter */
 		if prec.VotersTotal != 0 {
 			prec.VotedPerc = float64(prec.VotersTotal) / 100.0

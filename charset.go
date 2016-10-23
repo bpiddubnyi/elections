@@ -18,24 +18,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
-	"code.google.com/p/go-charset/charset"
-	_ "code.google.com/p/go-charset/data"
-	"io/ioutil"
-	"strings"
+	_ "github.com/paulrosania/go-charset/charset/iconv"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/encoding/charmap"
 )
+
+var (
+	decoder *encoding.Decoder
+)
+
+func init() {
+	decoder = charmap.Windows1251.NewDecoder()
+}
 
 /* I just can't believe that someone still using cp1251.
  * Burn in hell motherfuckers! */
-func StringConvert(cp string, s string) (res string, err error) {
-	r, err := charset.NewReader(cp, strings.NewReader(s))
-	if err != nil {
-		return
-	}
-
-	rb, err := ioutil.ReadAll(r)
-	if err != nil {
-		return
-	}
-
-	return string(rb), nil
+func StringConvert(s string) (string, error) {
+	return decoder.String(s)
 }

@@ -18,12 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
-	"code.google.com/p/plotinum/plot"
-	"code.google.com/p/plotinum/plotter"
 	"fmt"
 	"math"
 	"os"
 	"path"
+
+	"github.com/gonum/plot"
+	"github.com/gonum/plot/plotter"
+	"github.com/gonum/plot/vg"
 )
 
 func PartyMapToPlot(m *map[float64]float64, n string, r string, c *Config) {
@@ -54,11 +56,11 @@ func PartyMapToPlot(m *map[float64]float64, n string, r string, c *Config) {
 	p.X.Label.Text = "Голосів за партію на дільниці(%)"
 	p.Y.Label.Text = "Кількість дільниць"
 
-	h := plotter.NewHistogram(xys, int(100*math.Pow(10.0, float64(c.precision))))
+	h, _ := plotter.NewHistogram(xys, int(100*math.Pow(10.0, float64(c.precision))))
 	p.Add(h)
 
 	fname := path.Join(regionDir, n+".png")
-	if err = p.Save(8, 8, fname); err != nil {
+	if err = p.Save(8*vg.Inch, 8*vg.Inch, fname); err != nil {
 		fmt.Printf("Failed to save plot (%s): %v\n", fname, err)
 		panic(err)
 	}
