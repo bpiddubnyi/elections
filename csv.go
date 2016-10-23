@@ -24,10 +24,10 @@ import (
 	"path"
 )
 
-func partyMapToCsv(m *map[float64]float64, n string, r string, c *config) {
+func partyMapToCsv(m map[float64]float64, n string, r string, c *config) {
 	buf := make([][]string, 2)
 	for i := range buf {
-		buf[i] = make([]string, len(*m))
+		buf[i] = make([]string, len(m))
 	}
 
 	regionDir := path.Join(c.path, r)
@@ -53,7 +53,7 @@ func partyMapToCsv(m *map[float64]float64, n string, r string, c *config) {
 	csvFile := csv.NewWriter(file)
 
 	i := 0
-	for percent, count := range *m {
+	for percent, count := range m {
 		buf[0][i] = fmt.Sprintf("%.*f", c.precision, percent)
 		buf[1][i] = fmt.Sprintf("%.0f", count)
 		i++

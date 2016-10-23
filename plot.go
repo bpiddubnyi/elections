@@ -28,12 +28,12 @@ import (
 	"github.com/gonum/plot/vg"
 )
 
-func partyMapToPlot(m *map[float64]float64, n string, r string, c *config) {
+func partyMapToPlot(m map[float64]float64, n string, r string, c *config) {
 	// Convert map to XYs
-	xys := make(plotter.XYs, len(*m))
+	xys := make(plotter.XYs, len(m))
 
 	i := 0
-	for x, y := range *m {
+	for x, y := range m {
 		xys[i].X = x
 		xys[i].Y = y
 		i++

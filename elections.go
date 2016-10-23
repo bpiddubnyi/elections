@@ -72,15 +72,15 @@ func main() {
 		return
 	}
 
-	resultMap := make(map[string]*map[string]*map[float64]float64)
+	resultMap := make(map[string]map[string]map[float64]float64)
 
 	// Calculations
-	countryPartyMap := make(map[string]*map[float64]float64)
-	resultMap["Україна"] = &countryPartyMap
+	countryPartyMap := make(map[string]map[float64]float64)
+	resultMap["Україна"] = countryPartyMap
 
 	for _, region := range regions {
-		regionPartyMap := make(map[string]*map[float64]float64)
-		resultMap[region.Name] = &regionPartyMap
+		regionPartyMap := make(map[string]map[float64]float64)
+		resultMap[region.Name] = regionPartyMap
 
 		for _, dist := range region.Districts {
 			for _, prec := range dist.Precincts {
@@ -95,20 +95,20 @@ func main() {
 
 					if rpM == nil {
 						b := make(map[float64]float64)
-						rpM = &b
+						rpM = b
 						regionPartyMap[party] = rpM
 					}
 
 					if cpM == nil {
 						b := make(map[float64]float64)
-						cpM = &b
+						cpM = b
 						countryPartyMap[party] = cpM
 					}
 
 					resultRound := round(result, cfg.precision)
 
-					(*rpM)[resultRound]++
-					(*cpM)[resultRound]++
+					rpM[resultRound]++
+					cpM[resultRound]++
 				}
 			}
 		}
@@ -116,7 +116,7 @@ func main() {
 
 	// Save results
 	for region, regionMap := range resultMap {
-		for party, partyMap := range *regionMap {
+		for party, partyMap := range regionMap {
 			partyMapToPlot(partyMap, party, region, &cfg)
 			partyMapToCsv(partyMap, party, region, &cfg)
 		}
