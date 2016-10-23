@@ -65,14 +65,14 @@ func NewDistrict(num int) (dist *District, err error) {
 		parties = make([]string, header.Children().Size()-3)
 		header.Children().Slice(3, header.Children().Size()).Each(func(i int, s *goquery.Selection) {
 			buf, _ := s.Html()
-			buf, _ = StringConvert(buf)
+			buf, _ = winCharsetDecoder.String(buf)
 			buf = strings.TrimSpace(html.UnescapeString(buf))
 			parties[i] = buf
 		})
 	} else {
 		header.Children().Slice(3, header.Children().Size()).Each(func(j int, s *goquery.Selection) {
 			buf, _ := s.Html()
-			buf, _ = StringConvert(buf)
+			buf, _ = winCharsetDecoder.String(buf)
 			buf = strings.TrimSpace(html.UnescapeString(buf))
 			if buf != parties[j] {
 				fmt.Printf("'%s' not equals '%s'(%d)\n", buf, parties[j], j)

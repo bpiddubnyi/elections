@@ -53,7 +53,7 @@ func GetRegions() (r []Region, err error) {
 			fmt.Println(err)
 		}
 
-		region.Name, err = StringConvert(region.Name)
+		region.Name, err = winCharsetDecoder.String(region.Name)
 		if err != nil {
 			fmt.Println(err)
 		}

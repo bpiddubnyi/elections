@@ -24,15 +24,11 @@ import (
 )
 
 var (
-	decoder *encoding.Decoder
+	winCharsetDecoder *encoding.Decoder
 )
 
+// I just can't believe that someone still using cp1251.
+// Burn in hell motherfuckers!
 func init() {
-	decoder = charmap.Windows1251.NewDecoder()
-}
-
-/* I just can't believe that someone still using cp1251.
- * Burn in hell motherfuckers! */
-func StringConvert(s string) (string, error) {
-	return decoder.String(s)
+	winCharsetDecoder = charmap.Windows1251.NewDecoder()
 }
